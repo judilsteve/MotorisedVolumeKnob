@@ -213,7 +213,7 @@ namespace IrReceiverUtils
              *
              * @returns The receiver instance
              */
-            static IrReceiver& Attach(bool inverted)
+            static IrReceiver& Attach(bool const inverted)
             {
                 attachInterrupt(
                     digitalPinToInterrupt(ReceiverPin),
@@ -240,7 +240,7 @@ namespace IrReceiverUtils
                 else return false;
             }
 
-            volatile unsigned long GetLastCode()
+            volatile unsigned long GetLastCode() const
             {
                 return lastCode;
             }
