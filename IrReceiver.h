@@ -22,6 +22,11 @@ namespace IrReceiverUtils
     };
 
     // See https://www.sbprojects.net/knowledge/ir/nec.php
+    // Intervals are measured between signal falls
+    // i.e. our receiver does not care how long bursts are,
+    // it only cares about the time interval between them
+    // This greatly simplifies the state graph and allows
+    // supporting transmitters with non-standard burst intervals
     unsigned long const ZERO_DURATION = 1125UL;
     unsigned long const ONE_DURATION = 2250UL;
     unsigned long const REPEAT_DURATION = 2810UL;
@@ -172,7 +177,7 @@ namespace IrReceiverUtils
             ReceivingPacketState receivingPacketState;
             ReceivedPacketState receivedPacketState;
 
-            static void handleInputRise()
+            static void handleSignalFall()
             {
                 instance.Tick();
             }
@@ -203,14 +208,17 @@ namespace IrReceiverUtils
              * pin is interrupt capable, configured as an input,
              * and that the interrupt is free. No validation is performed
              *
+             * @bool inverted Should be true if the attached receiver inverts
+             * the signal when it is demodulated (true for most TSOPxx38 modules)
+             *
              * @returns The receiver instance
              */
-            static IrReceiver& Attach()
+            static IrReceiver& Attach(bool inverted)
             {
                 attachInterrupt(
                     digitalPinToInterrupt(ReceiverPin),
-                    handleInputRise,
-                    RISING);
+                    handleInputFall,
+                    inverted ? RISING : FALLING);
                 return instance;
             }
 

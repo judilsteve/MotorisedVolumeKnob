@@ -12,7 +12,7 @@ void setup()
 }
 
 IrPacket packet;
-auto const & receiver = InputPinIrReceiver<IR_RECV_PIN>::Attach();
+auto const & receiver = InputPinIrReceiver<IR_RECV_PIN>::Attach(/*inverted:*/true);
 
 void loop()
 {
