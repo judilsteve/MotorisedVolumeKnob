@@ -10,7 +10,7 @@ namespace IrReceiverUtils
 
     enum ReceiverStateId
     {
-        WAITING_FOR_AGC, // Have not yet received automatic gain control (AGC) burst which signals the start of a code/repeat
+        WAITING_FOR_PACKET, // Have not yet received automatic gain control (AGC) burst which signals the start of a code/repeat
         RECEIVING_PACKET, // Have received the AGC burst and anywhere between 0 and 31 bits
         RECEIVED_PACKET // Have received a full code (or a repeat burst). Waiting for result to be consumed
     };
@@ -39,12 +39,28 @@ namespace IrReceiverUtils
         return testDuration >= (windowCentre - HALF_WINDOW) && testDuration <= (windowCentre + HALF_WINDOW);
     }
 
-    class WaitingForAgcState : public State<ReceiverStateId>
+    class WaitingForPacketState : public State<ReceiverStateId>
     {
+        private:
+            volatile IrPacket & packet;
+
         public:
+            WaitingForPacketState(volatile IrPacket & packet)
+                : packet(packet)
+            { }
+
             ReceiverStateId Tick(unsigned long const deltaMicros)
             {
-                return WithinWindow(deltaMicros, AGC_DURATION) ? RECEIVING_PACKET : WAITING_FOR_AGC;
+                if(WithinWindow(deltaMicros, REPEAT_DURATION))
+                {
+                    packet.IsRepeat = true;
+                    return RECEIVED_PACKET;
+                }
+                else if(WithinWindow(deltaMicros, AGC_DURATION))
+                {
+                    return RECEIVING_PACKET;
+                }
+                else return WAITING_FOR_PACKET;
             }
 
             void OnEnterState() { }
@@ -74,20 +90,16 @@ namespace IrReceiverUtils
                     packet.Code++;
                     return (++bitsCaptured == BITS_PER_CODE) ? RECEIVED_PACKET : RECEIVING_PACKET; 
                 }
-                else if (bitsCaptured == 0 && WithinWindow(deltaMicros, REPEAT_DURATION))
-                {
-                    packet.IsRepeat = true;
-                    return RECEIVED_PACKET;
-                }
                 else
                 {
-                    return WAITING_FOR_AGC;
+                    return WAITING_FOR_PACKET;
                 }
             }
 
             void OnEnterState()
             {
                 packet.Code = 0UL;
+                packet.IsRepeat = false;
                 bitsCaptured = 0;
             }
     };
@@ -146,7 +158,7 @@ namespace IrReceiverUtils
              * @returns The last code (non-repeat packet) captured by the receiver
              * Returned value is not valid until at least one packet has been captured
              */
-            virtual volatile unsigned long GetLastCode() = 0;
+            virtual volatile unsigned long GetLastCode() const = 0;
     };
 
     /**
@@ -173,7 +185,7 @@ namespace IrReceiverUtils
             volatile unsigned long lastCode;
             volatile bool packetReady = false;
 
-            WaitingForAgcState waitingForAgcState;
+            WaitingForPacketState waitingForPacketState;
             ReceivingPacketState receivingPacketState;
             ReceivedPacketState receivedPacketState;
 
@@ -183,7 +195,8 @@ namespace IrReceiverUtils
             }
 
             InputPinIrReceiver()
-                : StateMachine(WAITING_FOR_AGC, &waitingForAgcState)
+                : StateMachine(WAITING_FOR_PACKET, &waitingForPacketState)
+                , waitingForPacketState(packet)
                 , receivingPacketState(packet)
                 , receivedPacketState(packet, lastCode, packetReady)
             { }
@@ -195,9 +208,9 @@ namespace IrReceiverUtils
                 {
                     case RECEIVING_PACKET: return &receivingPacketState;
                     case RECEIVED_PACKET: return &receivedPacketState;
-                    case WAITING_FOR_AGC:
+                    case WAITING_FOR_PACKET:
                     default:
-                        return &waitingForAgcState;
+                        return &waitingForPacketState;
                 }
             }
 
@@ -217,7 +230,7 @@ namespace IrReceiverUtils
             {
                 attachInterrupt(
                     digitalPinToInterrupt(ReceiverPin),
-                    handleInputFall,
+                    handleSignalFall,
                     inverted ? RISING : FALLING);
                 return instance;
             }
@@ -233,7 +246,7 @@ namespace IrReceiverUtils
                 {
                     outPacket.Code = packet.Code;
                     outPacket.IsRepeat = packet.IsRepeat;
-                    SetState(WAITING_FOR_AGC);
+                    SetState(WAITING_FOR_PACKET);
                     packetReady = false;
                     return true;
                 }
