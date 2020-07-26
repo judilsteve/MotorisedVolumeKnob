@@ -34,7 +34,7 @@ namespace IrReceiverUtils
     unsigned long const HALF_WINDOW = 80UL; // TODO make this configurable
     byte const BITS_PER_CODE = 32;
 
-    bool WithinWindow(unsigned long const testDuration, unsigned long const windowCentre)
+    bool const WithinWindow(unsigned long const testDuration, unsigned long const windowCentre)
     {
         return testDuration >= (windowCentre - HALF_WINDOW) && testDuration <= (windowCentre + HALF_WINDOW);
     }
@@ -49,7 +49,7 @@ namespace IrReceiverUtils
                 : packet(packet)
             { }
 
-            ReceiverStateId Tick(unsigned long const deltaMicros)
+            ReceiverStateId const Tick(unsigned long const deltaMicros)
             {
                 if(WithinWindow(deltaMicros, REPEAT_DURATION))
                 {
@@ -77,7 +77,7 @@ namespace IrReceiverUtils
                 : packet(packet)
             { }
 
-            ReceiverStateId Tick(unsigned long const deltaMicros)
+            ReceiverStateId const Tick(unsigned long const deltaMicros)
             {
                 if (WithinWindow(deltaMicros, ZERO_DURATION))
                 {
@@ -121,7 +121,7 @@ namespace IrReceiverUtils
                 , packetReady(packetReady)
             { }
 
-            ReceiverStateId Tick(unsigned long const)
+            ReceiverStateId const Tick(unsigned long const)
             {
                 return RECEIVED_PACKET;
             }

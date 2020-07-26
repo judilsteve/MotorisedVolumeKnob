@@ -10,7 +10,7 @@ namespace StateMachineUtils
              * @param deltaMicros The time (in microseconds) since the last tick of the state machine
              * @return The new state of the state machine
              */
-            virtual TStateId Tick(unsigned long const deltaMicros) = 0;
+            virtual TStateId const Tick(unsigned long const deltaMicros) = 0;
 
             /**
              * Called when the state machine enters this state.
@@ -21,7 +21,7 @@ namespace StateMachineUtils
             virtual void OnEnterState() = 0;
     };
 
-    unsigned long Duration(unsigned long const startMicros, unsigned long const endMicros)
+    unsigned long const Duration(unsigned long const startMicros, unsigned long const endMicros)
     {
         if(startMicros > endMicros) return startMicros - endMicros;
         else return endMicros - startMicros;

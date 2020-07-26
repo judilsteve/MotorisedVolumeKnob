@@ -35,7 +35,7 @@ namespace VolumeMotorStateMachine
                 : irReceiver(irReceiver)
             { }
 
-            MotorStateId Tick(unsigned long const)
+            MotorStateId const Tick(unsigned long const)
             {
                 IrPacket packet;
                 if (irReceiver.TryGetPacket(packet) && !packet.IsRepeat)
@@ -45,7 +45,7 @@ namespace VolumeMotorStateMachine
                 }
                 return IDLE;
             }
-            
+
             void OnEnterState()
             {
                 digitalWrite(MOTOR_VOLUME_UP_PIN, LOW);
@@ -65,7 +65,7 @@ namespace VolumeMotorStateMachine
                 : irReceiver(irReceiver)
             { }
 
-            MotorStateId Tick(unsigned long const deltaMicros)
+            MotorStateId const Tick(unsigned long const deltaMicros)
             {
                 if (irReceiver.TryGetPacket())
                 {
@@ -80,7 +80,7 @@ namespace VolumeMotorStateMachine
                 if(brakeTimeMicros >= brakeDurationMicros) return IDLE;
                 else return BRAKING;
             }
-            
+
             void OnEnterState()
             {
                 brakeTimeMicros = 0;
@@ -89,16 +89,13 @@ namespace VolumeMotorStateMachine
             }
     };
 
-    template <bool VolumeUp> class MovingMotorState : public State<MotorStateId>
+    template <bool const VolumeUp> class MovingMotorState : public State<MotorStateId>
     {
         private:
             IrReceiver & irReceiver;
-            unsigned long const shortTimeoutMicros = 120UL * 1000UL; // TODO Make configurable
-            unsigned long const longTimeoutMicros = 300UL * 1000UL; // TODO Make configurable
-            unsigned long const timeoutSwitchPoint = 1200UL * 1000UL; // Time spent in the state before switching from short to long timeout TODO Make configurable
-            unsigned long forwardMicros = 0; // Time since motor started moving forward
+            unsigned long const timeoutMicros = 120UL * 1000UL; // TODO Make configurable
             unsigned long microsSinceLastForwardCommand = 0; // Time since last matching command/repeat packet
-            
+
             static unsigned long const forwardCommandCode = VolumeUp ? VOLUME_UP_CODE : VOLUME_DOWN_CODE;
             static unsigned long const reverseCommandCode = VolumeUp ? VOLUME_DOWN_CODE : VOLUME_UP_CODE;
             static int const forwardPin = VolumeUp ? MOTOR_VOLUME_UP_PIN : MOTOR_VOLUME_DOWN_PIN;
@@ -111,7 +108,7 @@ namespace VolumeMotorStateMachine
                 : irReceiver(irReceiver)
             { }
 
-            MotorStateId Tick(unsigned long const deltaMicros)
+            MotorStateId const Tick(unsigned long const deltaMicros)
             {
                 IrPacket packet;
                 if (irReceiver.TryGetPacket(packet))
@@ -121,18 +118,11 @@ namespace VolumeMotorStateMachine
                 }
                 else microsSinceLastForwardCommand += deltaMicros;
 
-                forwardMicros += deltaMicros;
-
-                auto const timeoutMicros = forwardMicros > timeoutSwitchPoint
-                    ? longTimeoutMicros
-                    : shortTimeoutMicros;
-                if (microsSinceLastForwardCommand > timeoutMicros) return BRAKING;
-                else return forwardState;
+                return microsSinceLastForwardCommand > timeoutMicros ? BRAKING : forwardState;
             }
 
             void OnEnterState()
             {
-                forwardMicros = 0;
                 microsSinceLastForwardCommand = 0;
                 // Setting the reverse pin to low first ensures that no braking occurs
                 digitalWrite(reversePin, LOW);
