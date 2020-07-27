@@ -9,7 +9,7 @@ For now, I would recommend you look into IRLib2 instead.
 
 In `setup()`, ensure that your pins are configured correctly:
 
-`
+```c++
 int const IR_RECV_PIN = 2;
 int const VOLUME_UP_PIN = 4;
 int const VOLUME_DOWN_PIN = 3;
@@ -20,17 +20,17 @@ void setup()
     pinMode(VOLUME_UP_PIN, OUTPUT);
     pinMode(VOLUME_DOWN_PIN, OUTPUT);
 }
-`
+```
 
 You will need to attach an IRReceiver to the interrupt for your desired digital input pin using the templated singleton:
 
-`
+```c++
 auto & receiver = InputPinIrReceiver<IR_RECV_PIN>::Attach(/*inverted:*/true);
-`
+```
 
 Then create a motor state machine that reads your receiver, supplying an appropriate configuration:
 
-`
+```c++
 auto motorStateMachine = VolumeMotorStateMachine(
     receiver,
     VolumeMotorConfig{
@@ -52,16 +52,16 @@ auto motorStateMachine = VolumeMotorStateMachine(
         // to stutter
         .MovementTimeoutMicros = 120UL * 1000UL
     });
-`
+```
 
 Finally, place a call to `motorStateMachine.tick()` at the top level of your `loop()` function:
 
-`
+```c++
 void loop()
 {
     motorStateMachine.Tick();
 }
-`
+```
 
 ## Troubleshooting
 
