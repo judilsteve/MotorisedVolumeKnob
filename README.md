@@ -22,9 +22,12 @@ void setup()
 }
 ```
 
-You will need to attach an IRReceiver to the interrupt for your desired digital input pin using the templated singleton:
+You will need to attach an IRReceiver to the pin-level interrupt for your desired digital input pin using the templated singleton:
 
 ```c++
+// Most IR demodulators that I've come across invert the demodulated signal
+// That is, the input pin goes LOW when the receiver is detecting a carrier pulse
+// Therefore, you likely want to set the 'inverted' parameter here to true
 auto & receiver = InputPinIrReceiver<IR_RECV_PIN>::Attach(/*inverted:*/true);
 ```
 
