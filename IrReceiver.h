@@ -31,7 +31,8 @@ namespace IrReceiverUtils
     unsigned long const ONE_DURATION = 2250UL;
     unsigned long const REPEAT_DURATION = 2810UL;
     unsigned long const AGC_DURATION = 5060UL;
-    unsigned long const HALF_WINDOW = 80UL; // TODO make this configurable
+    // Half-width of the timing precision window
+    unsigned long const HALF_WINDOW = 80UL;
     byte const BITS_PER_CODE = 32;
 
     bool const WithinWindow(unsigned long const testDuration, unsigned long const windowCentre)
@@ -221,7 +222,7 @@ namespace IrReceiverUtils
              * pin is interrupt capable, configured as an input,
              * and that the interrupt is free. No validation is performed
              *
-             * @bool inverted Should be true if the attached receiver inverts
+             * @param inverted Should be true if the attached receiver inverts
              * the signal when it is demodulated (true for most TSOPxx38 modules)
              *
              * @returns The receiver instance

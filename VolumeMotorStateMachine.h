@@ -5,17 +5,28 @@
 #include "StateMachine.h"
 #include "IrReceiver.h"
 
-namespace VolumeMotorStateMachine
+namespace VolumeMotorUtils
 {
     using namespace IrReceiverUtils;
     using namespace StateMachineUtils;
 
-    // TODO Make all these values configurable
-    unsigned long const VOLUME_UP_CODE = 0xFFA857;
-    unsigned long const VOLUME_DOWN_CODE = 0xFFE01F;
+    struct VolumeMotorConfig
+    {
+        // IR code to signal volume up command
+        unsigned long const VolumeUpCode;
+        // IR code to signal volume down command
+        unsigned long const VolumeDownCode;
 
-    int const MOTOR_VOLUME_UP_PIN = 4;
-    int const MOTOR_VOLUME_DOWN_PIN = 3;
+        // Digital output pin to drive motor in volume up direction
+        int const VolumeUpPin;
+        // Digital output pin to drive motor in volume down direction
+        int const VolumeDownPin;
+
+        // Duration to drive motor in brake mode (both inputs on) when stopping
+        unsigned long const BrakeDurationMicros;
+        // Duration to wait since last IR code before stopping
+        unsigned long const MovementTimeoutMicros;
+    };
 
     enum MotorStateId
     {
@@ -29,10 +40,14 @@ namespace VolumeMotorStateMachine
     {
         private:
             IrReceiver & irReceiver;
+            VolumeMotorConfig const & config;
 
         public:
-            IdleMotorState(IrReceiver & irReceiver)
+            IdleMotorState(
+                IrReceiver & irReceiver,
+                VolumeMotorConfig const & config)
                 : irReceiver(irReceiver)
+                , config(config)
             { }
 
             MotorStateId const Tick(unsigned long const)
@@ -40,16 +55,16 @@ namespace VolumeMotorStateMachine
                 IrPacket packet;
                 if (irReceiver.TryGetPacket(packet) && !packet.IsRepeat)
                 {
-                    if (packet.Code == VOLUME_UP_CODE) return VOLUME_INCREASING;
-                    else if (packet.Code == VOLUME_DOWN_CODE) return VOLUME_DECREASING;
+                    if (packet.Code == config.VolumeUpCode) return VOLUME_INCREASING;
+                    else if (packet.Code == config.VolumeDownCode) return VOLUME_DECREASING;
                 }
                 return IDLE;
             }
 
             void OnEnterState()
             {
-                digitalWrite(MOTOR_VOLUME_UP_PIN, LOW);
-                digitalWrite(MOTOR_VOLUME_DOWN_PIN, LOW);
+                digitalWrite(config.VolumeUpPin, LOW);
+                digitalWrite(config.VolumeDownPin, LOW);
             }
     };
 
@@ -57,35 +72,37 @@ namespace VolumeMotorStateMachine
     {
         private:
             IrReceiver & irReceiver;
-            unsigned long const brakeDurationMicros = 60UL * 1000UL; // Time to spend braking before going idle TODO Make configurable
+            VolumeMotorConfig const & config;
             unsigned long brakeTimeMicros = 0; // Time that motor has been braking for
 
         public:
-            BrakingMotorState(IrReceiver & irReceiver)
+            BrakingMotorState(
+                IrReceiver & irReceiver,
+                VolumeMotorConfig const & config)
                 : irReceiver(irReceiver)
+                , config(config)
             { }
 
             MotorStateId const Tick(unsigned long const deltaMicros)
             {
                 if (irReceiver.TryGetPacket())
                 {
-                    // Use last code so that the motor will restart in its last direction if the repeat
-                    // packet was a little late for some reason (usually voltage sag in remote battery)
-                    // TODO Make configurable
+                    // Use last code so that the motor will restart in its last direction if a repeat
+                    // packet was missed for some reason (often happens with poor quality demodulators)
                     auto const code = irReceiver.GetLastCode();
-                    if (code == VOLUME_UP_CODE) return VOLUME_INCREASING;
-                    else if (code == VOLUME_DOWN_CODE) return VOLUME_DECREASING;
+                    if (code == config.VolumeUpCode) return VOLUME_INCREASING;
+                    else if (code == config.VolumeDownCode) return VOLUME_DECREASING;
                 }
                 brakeTimeMicros += deltaMicros;
-                if(brakeTimeMicros >= brakeDurationMicros) return IDLE;
+                if(brakeTimeMicros >= config.BrakeDurationMicros) return IDLE;
                 else return BRAKING;
             }
 
             void OnEnterState()
             {
                 brakeTimeMicros = 0;
-                digitalWrite(MOTOR_VOLUME_UP_PIN, HIGH);
-                digitalWrite(MOTOR_VOLUME_DOWN_PIN, HIGH);
+                digitalWrite(config.VolumeUpPin, HIGH);
+                digitalWrite(config.VolumeDownPin, HIGH);
             }
     };
 
@@ -93,19 +110,22 @@ namespace VolumeMotorStateMachine
     {
         private:
             IrReceiver & irReceiver;
-            unsigned long const timeoutMicros = 120UL * 1000UL; // TODO Make configurable
+            VolumeMotorConfig const & config;
             unsigned long microsSinceLastForwardCommand = 0; // Time since last matching command/repeat packet
 
-            static unsigned long const forwardCommandCode = VolumeUp ? VOLUME_UP_CODE : VOLUME_DOWN_CODE;
-            static unsigned long const reverseCommandCode = VolumeUp ? VOLUME_DOWN_CODE : VOLUME_UP_CODE;
-            static int const forwardPin = VolumeUp ? MOTOR_VOLUME_UP_PIN : MOTOR_VOLUME_DOWN_PIN;
-            static int const reversePin = VolumeUp ? MOTOR_VOLUME_DOWN_PIN : MOTOR_VOLUME_UP_PIN;
+            unsigned long const forwardCommandCode = VolumeUp ? config.VolumeUpCode: config.VolumeDownCode;
+            unsigned long const reverseCommandCode = VolumeUp ? config.VolumeDownCode : config.VolumeUpCode;
+            int const forwardPin = VolumeUp ? config.VolumeUpPin: config.VolumeDownPin;
+            int const reversePin = VolumeUp ? config.VolumeDownPin : config.VolumeUpPin;
             static MotorStateId const forwardState = VolumeUp ? VOLUME_INCREASING : VOLUME_DECREASING;
             static MotorStateId const reverseState = VolumeUp ? VOLUME_DECREASING : VOLUME_INCREASING;
 
         public:
-            MovingMotorState(IrReceiver & irReceiver)
+            MovingMotorState(
+                IrReceiver & irReceiver,
+                VolumeMotorConfig const & config)
                 : irReceiver(irReceiver)
+                , config(config)
             { }
 
             MotorStateId const Tick(unsigned long const deltaMicros)
@@ -118,7 +138,7 @@ namespace VolumeMotorStateMachine
                 }
                 else microsSinceLastForwardCommand += deltaMicros;
 
-                return microsSinceLastForwardCommand > timeoutMicros ? BRAKING : forwardState;
+                return microsSinceLastForwardCommand > config.MovementTimeoutMicros ? BRAKING : forwardState;
             }
 
             void OnEnterState()
@@ -133,16 +153,20 @@ namespace VolumeMotorStateMachine
     class VolumeIncreasingMotorState : public MovingMotorState<true>
     {
         public:
-            VolumeIncreasingMotorState(IrReceiver & irReceiver)
-                : MovingMotorState(irReceiver)
+            VolumeIncreasingMotorState(
+                IrReceiver & irReceiver,
+                VolumeMotorConfig const & config)
+                : MovingMotorState(irReceiver, config)
             { }
     };
 
     class VolumeDecreasingMotorState : public MovingMotorState<false>
     {
         public:
-            VolumeDecreasingMotorState(IrReceiver & irReceiver)
-                : MovingMotorState(irReceiver)
+            VolumeDecreasingMotorState(
+                IrReceiver & irReceiver,
+                VolumeMotorConfig const & config)
+                : MovingMotorState(irReceiver, config)
             { }
     };
 
@@ -150,33 +174,36 @@ namespace VolumeMotorStateMachine
     {
         private:
             IrReceiver & irReceiver;
+            VolumeMotorConfig const & config;
             VolumeIncreasingMotorState volumeIncreasingMotorState;
             VolumeDecreasingMotorState volumeDecreasingMotorState;
             BrakingMotorState brakingMotorState;
             IdleMotorState idleMotorState;
 
         protected:
-            State<MotorStateId> & GetStateInstance(MotorStateId const stateId)
+            State<MotorStateId> * GetStateInstance(MotorStateId const stateId) const
             {
                 switch(stateId)
                 {
-                    case VOLUME_INCREASING: return volumeIncreasingMotorState;
-                    case VOLUME_DECREASING: return volumeDecreasingMotorState;
-                    case BRAKING: return brakingMotorState;
+                    case VOLUME_INCREASING: return &volumeIncreasingMotorState;
+                    case VOLUME_DECREASING: return &volumeDecreasingMotorState;
+                    case BRAKING: return &brakingMotorState;
                     case IDLE:
                     default:
-                        return idleMotorState;
+                        return &idleMotorState;
                 }
             }
 
         public:
-            VolumeMotorStateMachine(IrReceiver & irReceiver)
+            VolumeMotorStateMachine(
+                IrReceiver & irReceiver,
+                VolumeMotorConfig const & config)
                 : StateMachine(IDLE, &idleMotorState)
                 , irReceiver(irReceiver)
-                , volumeIncreasingMotorState(irReceiver)
-                , volumeDecreasingMotorState(irReceiver)
-                , brakingMotorState(irReceiver)
-                , idleMotorState(irReceiver)
+                , volumeIncreasingMotorState(irReceiver, config)
+                , volumeDecreasingMotorState(irReceiver, config)
+                , brakingMotorState(irReceiver, config)
+                , idleMotorState(irReceiver, config)
             { }
     };
 }

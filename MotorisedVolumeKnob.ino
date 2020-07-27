@@ -2,23 +2,29 @@
 #include "VolumeMotorStateMachine.h"
 
 using namespace IrReceiverUtils;
+using namespace VolumeMotorUtils;
 
 int const IR_RECV_PIN = 2;
 
 void setup()
 {
-    Serial.begin(38400);
     pinMode(IR_RECV_PIN, INPUT);
 }
 
-IrPacket packet;
-auto const & receiver = InputPinIrReceiver<IR_RECV_PIN>::Attach(/*inverted:*/true);
+auto & receiver = InputPinIrReceiver<IR_RECV_PIN>::Attach(/*inverted:*/true);
+
+auto motorStateMachine = VolumeMotorStateMachine(
+    receiver,
+    VolumeMotorConfig{
+        .VolumeUpCode = 0xFFA857,
+        .VolumeDownCode = 0xFFE01F,
+        .VolumeUpPin = 4,
+        .VolumeDownPin = 3,
+        .BrakeDurationMicros = 100UL * 1000UL,
+        .MovementTimeoutMicros = 100UL * 1000UL
+    });
 
 void loop()
 {
-    if (receiver.TryGetPacket(packet))
-    {
-        if (packet.IsRepeat) Serial.println("RPT");
-        else Serial.println(packet.Code, HEX);
-    }
+    motorStateMachine.Tick();
 }
