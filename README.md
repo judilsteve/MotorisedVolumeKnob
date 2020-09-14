@@ -12,36 +12,36 @@ Included in this repo:
 I have linked the exact listings that I purchased here, but almost all of these parts are available from many suppliers with stock in lots of different regions. Shop around to find local listings and save on shipping.
 
  - **[Motorised potentiometer:](https://au.mouser.com/ProductDetail/ALPS/RK16812MG0AF?qs=sGAEpiMZZMtC25l1F4XBUza7emsVrz94iYvX1a0%2Fw%2F8%3D)**
-  - **Alternatives:** Just buy this one.
-  - **Notes:** Alps is supposedly known for high quality audio potentiometers with smooth actuation and good channel matching. I can confirm that to be the case with these. I wouldn't substitute a different unit here, especially given that other brands don't seem to be much cheaper anyway.
+    - **Alternatives:** Just buy this one.
+    - **Notes:** Alps is supposedly known for high quality audio potentiometers with smooth actuation and good channel matching. I can confirm that to be the case with these. I wouldn't substitute a different unit here, especially given that other brands don't seem to be much cheaper anyway.
 
  - **[Enclosure:](https://www.aliexpress.com/item/4000207240540.html)**
-  - **Alternatives:** There are too many of these available to list. Plastic ones will be cheaper, or you could even 3D print one quite easily.
-  - **Notes:** I wouldn't try to cram these components into anything much smaller than this. If you go with a pre-made enclosure, make a template (STLs available in the repo for the linked enclosure) for drilling pilot holes, and then use a file to bring things to final dimension. It will end up looking much cleaner.
+    - **Alternatives:** There are too many of these available to list. Plastic ones will be cheaper, or you could even 3D print one quite easily.
+    - **Notes:** I wouldn't try to cram these components into anything much smaller than this. If you go with a pre-made enclosure, make a template (STLs available in the repo for the linked enclosure) for drilling pilot holes, and then use a file to bring things to final dimension. It will end up looking much cleaner.
 
  - **[Knob:](https://www.aliexpress.com/item/32749196662.html)**
-  - **Alternatives:** You can use any 6mm shaft knob with a grub screw or a notch (often called "D-Shaft" in listings). 3D printing is also an option here (STL available in the repo).
-  - **Notes:** Being solid aluminium, this knob has a nice weighty feel to it and the machining is of very high quality. It also seems to be available in other colours if you're not a fan of red. A lot of the cheaper "aluminium" knobs on sale are actually a thin aluminium cylinder wrapped around an injection moulded plastic core. `[Gap between knob and faceplate] = [potentiometer shaft length] - [knob shaft hole depth] - [faceplate thickness] - [spacer thickness]`. For the parts listed here, that works out to `20mm - \~13.7mm - \~1.2mm - 3mm = \~2mm`. Note that your spacer can be no thicker than 3mm, or else you won't have enough thread on the faceplate side of the shaft for you to thread the locking nut onto.
+    - **Alternatives:** You can use any 6mm shaft knob with a grub screw or a notch (often called "D-Shaft" in listings). 3D printing is also an option here (STL available in the repo).
+    - **Notes:** Being solid aluminium, this knob has a nice weighty feel to it and the machining is of very high quality. It also seems to be available in other colours if you're not a fan of red. A lot of the cheaper "aluminium" knobs on sale are actually a thin aluminium cylinder wrapped around an injection moulded plastic core. `[Gap between knob and faceplate] = [potentiometer shaft length] - [knob shaft hole depth] - [faceplate thickness] - [spacer thickness]`. For the parts listed here, that works out to `20mm - \~13.7mm - \~1.2mm - 3mm = \~2mm`. Note that your spacer can be no thicker than 3mm, or else you won't have enough thread on the faceplate side of the shaft for you to thread the locking nut onto.
 
  - **[RCA sockets:](https://www.aliexpress.com/item/33002834825.html)**
-  - **Alternatives:** You can definitely get cheaper, but the gold plating looked super cool. I doubt it makes any audible difference to sound quality, though.
-  - **Notes:** You'll need 2 of these 2-packs. Don't solder the positive terminal of these until *after* you have mounted them in the enclosure and put the ground ring in place.
+    - **Alternatives:** You can definitely get cheaper, but the gold plating looked super cool. I doubt it makes any audible difference to sound quality, though.
+    - **Notes:** You'll need 2 of these 2-packs. Don't solder the positive terminal of these until *after* you have mounted them in the enclosure and put the ground ring in place.
 
  - **[Motor controller:](https://www.aliexpress.com/item/32925603735.html)**
-  - **Alternatives:** Anything based on the L298 chip will work great.
-  - **Notes:** Cheap as chips and "brakes" the motor if you set both inputs high at the same time.
+    - **Alternatives:** Anything based on the L298 chip will work great.
+    - **Notes:** Cheap as chips and "brakes" the motor if you set both inputs high at the same time.
 
  - **[Arduino Nano:](https://www.aliexpress.com/item/32341832857.html)**
-  - **Alternatives:** Use any microcontroller you like, but the code here is written for Arduino.
-  - **Notes:** You can get away with the cheaper 168P chip for this application, and you don't need the header pins either. Just make sure whichever listing you buy specifies that the bootloader is already installed, or you will be in for a fun time to get it up and running.
+    - **Alternatives:** Use any microcontroller you like, but the code here is written for Arduino.
+    - **Notes:** You can get away with the cheaper 168P chip for this application, and you don't need the header pins either. Just make sure whichever listing you buy specifies that the bootloader is already installed, or you will be in for a fun time to get it up and running.
 
  - **[IR Remote:](https://www.aliexpress.com/item/1129167188.html)**
-  - **Alternatives:** Basically any IR remote you like. Even one for an old TV you have just lying around. Just make sure you get a receiver with a matching carrier frequency. The code in this repo only works with [NEC protocol](https://www.sbprojects.net/knowledge/ir/nec.php) remotes, but Arduino libraries like [IRLib2](https://github.com/cyborg5/IRLib2/tree/master/IRLib2) should have you covered for other protocols.
-  - **Notes:** This one came with battery, which is great. It uses the NEC protocol, which is widely supported by many Arduino libraries. It also includes a matching demodulating receiver, but I found that the receiver would miss repeat pulses and the motor would stutter, so I ended up swapping in a more expensive receiver (see below).
+    - **Alternatives:** Basically any IR remote you like. Even one for an old TV you have just lying around. Just make sure you get a receiver with a matching carrier frequency. The code in this repo only works with [NEC protocol](https://www.sbprojects.net/knowledge/ir/nec.php) remotes, but Arduino libraries like [IRLib2](https://github.com/cyborg5/IRLib2/tree/master/IRLib2) should have you covered for other protocols.
+    - **Notes:** This one came with battery, which is great. It uses the NEC protocol, which is widely supported by many Arduino libraries. It also includes a matching demodulating receiver, but I found that the receiver would miss repeat pulses and the motor would stutter, so I ended up swapping in a more expensive receiver (see below).
 
  - **[IR Receiver:](https://www.jaycar.com.au/5mm-infrared-receiver/p/ZD1952)**
-  - **Alternatives:** Beware cheap receivers. The cheap ones I tried worked fine for about one second of continuous button-holding and then started to miss IR pulses, causing the motor to stutter. The remote above requires a receiver tuned to a 37.9kHz (often listed as 38kHz) carrier frequency.
-  - **Notes:** You can get larger modules that combine multiple receivers to allow your remote to work from wider angles and longer distances.
+    - **Alternatives:** Beware cheap receivers. The cheap ones I tried worked fine for about one second of continuous button-holding and then started to miss IR pulses, causing the motor to stutter. The remote above requires a receiver tuned to a 37.9kHz (often listed as 38kHz) carrier frequency.
+    - **Notes:** You can get larger modules that combine multiple receivers to allow your remote to work from wider angles and longer distances.
 
 ## STLs
 
