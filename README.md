@@ -1,5 +1,7 @@
 # MotorisedVolumeKnob
 
+![Finished Product](/images/finished_product.jpg)
+
 Adjust the volume of your stereo system in style! Turn the knob yourself or sit back and let the IR remote control do it for you: The choice is yours with MotorisedVolumeKnob. Ideal for powered studio monitors (typically sold as individual units, with each speaker having its own amp and volume knob). No more running back and forth between your speakers to match the volume settings every time you need to make an adjustment.
 
 Included in this repo:
