@@ -197,9 +197,9 @@ namespace VolumeMotorUtils
         public:
             VolumeMotorStateMachine(
                 IrReceiver & irReceiver,
-                VolumeMotorConfig const && config)
+                VolumeMotorConfig const && inConfig) // Called "inConfig" to distinguish it from the member "config" when initialising the states below
                 : StateMachine(IDLE, &idleMotorState)
-                , config(config)
+                , config(inConfig)
                 , irReceiver(irReceiver)
                 , volumeIncreasingMotorState(irReceiver, config)
                 , volumeDecreasingMotorState(irReceiver, config)
