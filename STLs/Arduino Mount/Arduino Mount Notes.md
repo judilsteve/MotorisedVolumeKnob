@@ -1,0 +1,1 @@
+Your Arduino Nano should friction fit into the mount. Wrap a cable tie around it to clamp the jaws around the Arduino, and then use some self-tapping sheet metal screws (I used 4Gx9mm) to attach the mount to the rear faceplate of your enclosure.

@@ -1,0 +1,1 @@
+Fully 3D printable knob with some nice grippy bits on it. Should sit perfectly flush against a 1.2mm faceplate when using the potentiometer in the parts list, without requiring a spacer.

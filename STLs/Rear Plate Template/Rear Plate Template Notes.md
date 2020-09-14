@@ -1,0 +1,2 @@
+This is designed as a template that you can screw in on top of the enclosure in the parts list to assist you in drilling/filing the holes for the various components.
+However, if you increased the thickness you could use it as part of a fully 3D printed enclosure.
