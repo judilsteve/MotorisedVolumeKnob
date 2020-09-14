@@ -197,7 +197,7 @@ namespace VolumeMotorUtils
         public:
             VolumeMotorStateMachine(
                 IrReceiver & irReceiver,
-                VolumeMotorConfig const & config)
+                VolumeMotorConfig const && config)
                 : StateMachine(IDLE, &idleMotorState)
                 , irReceiver(irReceiver)
                 , volumeIncreasingMotorState(irReceiver, config)

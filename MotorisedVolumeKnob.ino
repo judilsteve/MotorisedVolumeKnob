@@ -16,16 +16,18 @@ void setup()
 }
 
 auto & receiver = InputPinIrReceiver<IR_RECV_PIN>::Attach(/*inverted:*/true);
-auto volumeMotorConfig = VolumeMotorConfig
-{
-    .VolumeUpCode = 0xFFA857,
-    .VolumeDownCode = 0xFFE01F,
-    .VolumeUpPin = VOLUME_UP_PIN,
-    .VolumeDownPin = VOLUME_DOWN_PIN,
-    .BrakeDurationMicros = 100UL * 1000UL,
-    .MovementTimeoutMicros = 120UL * 1000UL
-};
-auto motorStateMachine = VolumeMotorStateMachine(receiver, volumeMotorConfig);
+
+auto motorStateMachine = VolumeMotorStateMachine(
+    receiver,
+    VolumeMotorConfig
+    {
+        .VolumeUpCode = 0xFFA857,
+        .VolumeDownCode = 0xFFE01F,
+        .VolumeUpPin = VOLUME_UP_PIN,
+        .VolumeDownPin = VOLUME_DOWN_PIN,
+        .BrakeDurationMicros = 100UL * 1000UL,
+        .MovementTimeoutMicros = 120UL * 1000UL
+    });
 
 void loop()
 {
