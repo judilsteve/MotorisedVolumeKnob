@@ -174,7 +174,7 @@ namespace VolumeMotorUtils
     {
         private:
             IrReceiver & irReceiver;
-            VolumeMotorConfig const & config;
+            VolumeMotorConfig const config;
             VolumeIncreasingMotorState volumeIncreasingMotorState;
             VolumeDecreasingMotorState volumeDecreasingMotorState;
             BrakingMotorState brakingMotorState;
@@ -199,6 +199,7 @@ namespace VolumeMotorUtils
                 IrReceiver & irReceiver,
                 VolumeMotorConfig const && config)
                 : StateMachine(IDLE, &idleMotorState)
+                , config(config)
                 , irReceiver(irReceiver)
                 , volumeIncreasingMotorState(irReceiver, config)
                 , volumeDecreasingMotorState(irReceiver, config)
